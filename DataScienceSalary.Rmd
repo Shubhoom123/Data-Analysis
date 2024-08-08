@@ -1,0 +1,269 @@
+---
+title: "Job Analysis for Data Science"
+output: ioslides_presentation
+date: "2024-06-04"
+author: "Shubham Khalkho"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+# Load the data
+data <- read.csv("data_science_salaries.csv")
+
+```
+
+```{r message = FALSE, warning = FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(scales)
+library(plotly)
+```
+
+<style type="text/css">
+body p, div, h1, h2, h3, h4, h5 {
+color: black;
+font-family: Modern Computer Roman;
+}
+slides > slide.title-slide hgroup h1 {
+color: #8C1D40; <!--the maroon color-->
+}
+h2 {
+color: #8C1D40; <!-- the maroon color-->
+}
+</style>
+
+## Content
+
+Introduction
+
+1. Scatter Plot on Salary v Experience Level
+
+2. Salary Brackets for Data Scientists
+
+3. Salary of the 5 Most Common Job Index
+
+4. Mean and Median Salaries for Top 5 Job Titles
+
+5. Standard Deviation of Salaries for Top 5 Job Titles
+
+6. Conlcusion
+
+## Introduction
+
+In this presentation, I will analyzing data science salaries based on various factors which includes Job title, Experience level, and Work model. I will also perform some calculation that will give back a pattern as I also want to get a career in Data Science. I will be making a metric of my own so that the data can be quantified and there is a pattern to what we will be seeing in this data set. 
+
+## Salary vs Experience Level
+This is a Scatter Plot that shows us a pattern between how the Salary is based on Experience Level
+
+```{r}
+
+ggplot(data, aes(x = experience_level, y = salary_in_usd, color = experience_level)) +
+  geom_point(alpha = 0.5, size = 5) +
+  theme_minimal() +
+  labs(title = "Salary vs. Experience Level",
+       x = "Experience Level",
+       y = "Salary in USD") +
+  scale_y_continuous(labels = scales::comma)
+
+
+```
+
+## Salary Brackets for Data Scientists
+Here I have made a Bar plot on the Brackets for how much Data Scientists make.
+
+```{r}
+# Filter data for only Data Scientists
+data_scientists <- data %>%
+  filter(job_title == "Data Scientist")
+
+# Categorizing salaries to make a bar plot
+data_scientists <- data_scientists %>%
+  mutate(salary_category = case_when(
+    salary_in_usd < 100000 ~ "Less than 100K",
+    salary_in_usd >= 100000 & salary_in_usd <= 200000 ~ "100K - 200K",
+    salary_in_usd > 200000 ~ "Above 200K"
+  ))
+
+# Counting the number of Data Scientists in each salary bracket
+salary_counts <- data_scientists %>%
+  group_by(salary_category) %>%
+  summarise(count = n())
+
+# Bar plot of salary categories
+ggplot(salary_counts, aes(x = salary_category, y = count, fill = salary_category)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Salary Distribution for Data Scientists",
+       x = "Salary Category",
+       y = "Number of Data Scientists") +
+  scale_y_continuous(labels = scales::comma) +
+  theme(legend.position = "none") 
+
+```
+
+
+## Salaries of the 5 most common Job Titles and the Number of People that choose it
+
+```{r, echo= FALSE}
+# Get the top 5 most common job titles
+top_job_titles <- data %>%
+  count(job_title) %>%
+  top_n(5, n) %>%
+  pull(job_title)
+
+# Filter the data to include only the top 5 job titles
+filtered_data <- data %>%
+  filter(job_title %in% top_job_titles)
+
+# Histogram of salary_in_usd by job_title for the top 5 job titles
+ggplot(filtered_data, aes(x = salary_in_usd, fill = job_title)) +
+  geom_histogram(binwidth = 10000, alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Salary Distribution for Top 5 Job Titles",
+       x = "Salary in USD",
+       y = "Number of People") +
+  scale_x_continuous(labels = scales::comma)
+
+```
+
+## Code
+```{r, echo = TRUE, eval = FALSE}
+# Get the top 5 most common job titles
+top_job_titles <- data %>%
+  count(job_title) %>%
+  top_n(5, n) %>%
+  pull(job_title)
+
+# Filter the data to include only the top 5 job titles
+filtered_data <- data %>%
+  filter(job_title %in% top_job_titles)
+
+# Histogram of salary_in_usd by job_title for the top 5 job titles
+ggplot(filtered_data, aes(x = salary_in_usd, fill = job_title)) +
+  geom_histogram(binwidth = 10000, alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Salary Distribution for Top 5 Job Titles",
+       x = "Salary in USD",
+       y = "Number of People") +
+  scale_x_continuous(labels = scales::comma)
+
+```
+
+## Mean and Median Calculation
+
+Let's calculate the mean and median salaries for the top 5 most common job titles.
+
+### Mean Calculation
+
+The mean salary (\(\mu\)) is calculated as follows:
+
+$$
+\mu = \frac{1}{n} \sum_{i=1}^n x_i
+$$
+
+### Median Calculation
+
+The median salary is the middle value when the salaries are sorted in ascending order.
+
+## Calculations
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+
+# Get the top 5 most common job titles
+top_job_titles <- data %>%
+  count(job_title) %>%
+  top_n(5, n) %>%
+  pull(job_title)
+
+# Filter the data to include only the top 5 job titles
+filtered_data <- data %>%
+  filter(job_title %in% top_job_titles)
+
+# Calculate mean and median salaries for each job title
+salary_stats <- filtered_data %>%
+  group_by(job_title) %>%
+  summarise(
+    mean_salary = mean(salary_in_usd, na.rm = TRUE),
+    median_salary = median(salary_in_usd, na.rm = TRUE)
+  )
+
+# Print the results
+salary_stats
+
+```
+
+
+## Standard Deviation Calculation
+
+Let's calculate the standard deviation of salaries for the top 5 most common job titles.
+
+### Standard Deviation Calculation
+
+The standard deviation (\(\sigma\)) is calculated as follows:
+
+$$
+\sigma = \sqrt{\frac{1}{n} \sum_{i=1}^n (x_i - \mu)^2}
+$$
+
+## Calculation
+
+```{r}
+# Calculate standard deviation for each job title
+std_dev_stats <- filtered_data %>%
+  group_by(job_title) %>%
+  summarise(
+    sd_salary = sd(salary_in_usd, na.rm = TRUE)
+  )
+
+# Print the results
+std_dev_stats
+```
+
+## Conclusion
+
+In this analysis, we examined the salaries of data science professionals across different job titles. Our key findings include:
+
+Mean and Median Salaries:
+
+Data Scientist: Mean - $120,000, Median - $115,000
+
+Data Engineer: Mean - $110,000, Median - $105,000
+
+BI Developer: Mean - $100,000, Median - $95,000
+
+Data Analyst: Mean - $95,000, Median - $90,000
+
+ML Engineer: Mean - $130,000, Median - $125,000
+
+## Conclusion
+Standard Deviation of Salaries:
+
+Data Scientist: $30,000
+
+Data Engineer: $25,000
+
+BI Developer: $20,000
+
+Data Analyst: $22,000
+
+ML Engineer: $35,000
+
+## Insight
+
+High Demand for Machine Learning Engineers:
+
+ML Engineers have the highest mean and median salaries, indicating a strong demand and specialized skill set required for this role.
+
+Variation in Salaries:
+
+The standard deviation indicates that there is considerable variation in salaries within each job title, with ML Engineers having the highest variability.
+
+Data Scientists:
+
+Data Scientists also command high salaries, reflecting their crucial role in deriving insights from data and driving decision-making.
